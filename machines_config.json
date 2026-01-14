@@ -1,0 +1,27 @@
+{
+   "Machine_1": {
+    "Voltage": {"register": 0, "unit": "V"},
+    "Current": {"register": 2, "unit": "A"},
+    "Temperature": {"register": 4, "unit": "°C"}
+  },
+  "Machine_2": {
+    "Voltage": {"register": 0, "unit": "V"},
+    "Current": {"register": 2, "unit": "A"},
+    "Temperature": {"register": 4, "unit": "°C"}
+  },
+   "Machine_3": {
+    "Voltage": {"register": 0, "unit": "V"},
+    "Current": {"register": 2, "unit": "A"},
+    "Temperature": {"register": 4, "unit": "°C"}
+  },
+   "Machine_4": {
+    "Voltage": {"register": 0, "unit": "V"},
+    "Current": {"register": 2, "unit": "A"},
+    "Temperature": {"register": 4, "unit": "°C"}
+  },
+   "Machine_5": {
+    "Voltage": {"register": 0, "unit": "V"},
+    "Current": {"register": 2, "unit": "A"},
+    "Temperature": {"register": 4, "unit": "°C"}
+  }
+}
