@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "OSV8Py/8bGOKDdDrgyBMNshlQLAMN1fKOssEJFee1EY=",
+  "Source": "POCApi",
+  "BasePath": "_content/POCApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

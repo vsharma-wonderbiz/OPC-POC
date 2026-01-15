@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POCApi", "POCApi\POCApi.csproj", "{1C4C2B4E-0760-447F-8131-E032AB3BD94D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C4C2B4E-0760-447F-8131-E032AB3BD94D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C4C2B4E-0760-447F-8131-E032AB3BD94D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C4C2B4E-0760-447F-8131-E032AB3BD94D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C4C2B4E-0760-447F-8131-E032AB3BD94D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {738577C8-FC05-4E36-8AFA-E4E5342C48FF}
+	EndGlobalSection
+EndGlobal

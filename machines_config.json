@@ -1,27 +1,23 @@
 {
-   "Machine_1": {
-    "Voltage": {"register": 0, "unit": "V"},
-    "Current": {"register": 2, "unit": "A"},
-    "Temperature": {"register": 4, "unit": "°C"}
+  "Machine_1": {
+    "signals": {
+      "Voltage": {"register": 0, "unit": "V", "slave_id": 1},
+      "Current": {"register": 2, "unit": "A", "slave_id": 1},
+      "Temperature": {"register": 4, "unit": "°C", "slave_id": 2}
+    }
   },
   "Machine_2": {
-    "Voltage": {"register": 0, "unit": "V"},
-    "Current": {"register": 2, "unit": "A"},
-    "Temperature": {"register": 4, "unit": "°C"}
+    "signals": {
+      "Voltage": {"register": 0, "unit": "V", "slave_id": 2},
+      "Current": {"register": 2, "unit": "A", "slave_id": 2},
+      "Temperature": {"register": 4, "unit": "°C", "slave_id": 1}
+    }
   },
-   "Machine_3": {
-    "Voltage": {"register": 0, "unit": "V"},
-    "Current": {"register": 2, "unit": "A"},
-    "Temperature": {"register": 4, "unit": "°C"}
-  },
-   "Machine_4": {
-    "Voltage": {"register": 0, "unit": "V"},
-    "Current": {"register": 2, "unit": "A"},
-    "Temperature": {"register": 4, "unit": "°C"}
-  },
-   "Machine_5": {
-    "Voltage": {"register": 0, "unit": "V"},
-    "Current": {"register": 2, "unit": "A"},
-    "Temperature": {"register": 4, "unit": "°C"}
+  "Machine_3": {
+    "signals": {
+      "Voltage": {"register": 0, "unit": "V", "slave_id": 2},
+      "Current": {"register": 2, "unit": "A", "slave_id": 2},
+      "Temperature": {"register": 4, "unit": "°C", "slave_id": 1}
+    }
   }
 }
