@@ -1,5 +1,47 @@
 [
   {
+    "ContainingType": "POCApi.Controllers.ConfigController",
+    "Method": "GetAllMachinesAsync",
+    "RelativePath": "api/Config",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "POCApi.Controllers.ConfigController",
+    "Method": "AddNewMachine",
+    "RelativePath": "api/Config/{machinename}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "machinename",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "POCApi.Controllers.ConfigController",
+    "Method": "AddNewConfigOnMachine",
+    "RelativePath": "api/Config/AddSignal",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "POCApi.Dtos.SignalConfigDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "POCApi.Controllers.MachineController",
     "Method": "GetAllMAchine",
     "RelativePath": "api/Machine",
@@ -20,6 +62,22 @@
       {
         "Name": "machine",
         "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "POCApi.Controllers.MachineController",
+    "Method": "RunBackfill",
+    "RelativePath": "api/Machine/Backfill",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "POCApi.Dtos.BackfillRequestDto",
         "IsRequired": true
       }
     ],
@@ -51,6 +109,27 @@
       {
         "Name": "to",
         "Type": "System.DateTime",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "POCApi.Controllers.MachineController",
+    "Method": "GetSignalAverages",
+    "RelativePath": "api/Machine/signal-averages",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "machine",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "days",
+        "Type": "System.Int32",
         "IsRequired": false
       }
     ],

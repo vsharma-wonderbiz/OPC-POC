@@ -65,5 +65,23 @@ namespace POCApi.Services
             }
         }
 
+
+        public async Task<List<SignalAverageDto>>GetAverageByMachineAsync(string machine, int days)
+        {
+            var formdate = DateTime.UtcNow.AddDays(-days);
+
+            return await _db.Machinedata
+                      .Where(x => x.Machine == machine && x.Timestamp >= formdate)
+                      .GroupBy(x => x.Signal)
+                      .Select(g => new SignalAverageDto
+                      {
+                          Signal = g.Key,
+                          Average = Math.Round(g.Average(x => x.Value), 2),
+                          Unit = g.First().Unit
+                      })
+                      .OrderBy(x => x.Signal)
+                      .ToListAsync();
+        }
+
     }
 }

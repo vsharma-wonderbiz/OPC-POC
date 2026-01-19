@@ -71,7 +71,7 @@ for machine_name, machine_cfg in MACHINES_CONFIG.items():
 
 #these basically reads the updates the data on the registers 
 def update_variables_from_modbus():
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")     
 
     for slave_id, signals_list in slave_register_map.items():
         # Determine start register and count for bulk read

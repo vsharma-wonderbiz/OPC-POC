@@ -12,5 +12,7 @@ namespace POCApi.Interface
             DateTime from,
             DateTime to
         );
+
+        Task<List<SignalAverageDto>> GetAverageByMachineAsync(string machine, int days);
     }
 }

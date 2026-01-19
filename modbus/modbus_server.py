@@ -15,7 +15,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 # ---------- initial registers (pairs: high, 0) ----------
-initial_regs_slave1 = [2200,0, 1500,0, 3000,0, 500,0, 20,0, 1000,0, 1800,0, 250,0]
+initial_regs_slave1 = [2200,0, 3500,0, 6000,0, 500,0, 20,0, 1000,0, 1800,0, 250,0]
 initial_regs_slave2 = [2100,0, 1400,0, 2800,0, 490,0, 30,0, 900,0, 1600,0, 300,0]
 
 # ---------- Build contexts for units 1..247 ----------
@@ -23,13 +23,17 @@ initial_regs_slave2 = [2100,0, 1400,0, 2800,0, 490,0, 30,0, 900,0, 1600,0, 300,0
 stores = {}
 for unit in range(1, 248):
     if unit == 1:
-        stores[unit] = ModbusSlaveContext(hr=ModbusSequentialDataBlock(0, initial_regs_slave1))#these is basically defined the register in slave
+        stores[unit] = ModbusSlaveContext(hr=ModbusSequentialDataBlock(0, initial_regs_slave1))
+#ModbusSequentialDataBlock ye basicallly resgiter banate hai in memory jaie ki real plc main hota hai nut ye server ke 
+#memeory main banate hai regsiter using list or array 
+#ModbusSlaveContext ye basically slave banata hai server pe aur usmian regiter include karta hai 
     elif unit == 2:
         stores[unit] = ModbusSlaveContext(hr=ModbusSequentialDataBlock(0, initial_regs_slave2))
     else:
         stores[unit] = ModbusSlaveContext(hr=ModbusSequentialDataBlock(0, [0]*16))
 
 context = ModbusServerContext(slaves=stores, single=False)#these tells modbus that i ma running server with multiple slaves menas multiplr devices
+#ModbusServerContext ye funtin define karat hai ki kitne slavce will be manage by server
 
 # ---------- Identity ----------
 identity = ModbusDeviceIdentification()#these is basically device meta data to tell clinet if he cinnetc which serve and what is the metdata

@@ -11,7 +11,7 @@ load_dotenv()
 
 OPCUA_URL = os.getenv("OPCUA_URL")
 DB_FILE = os.getenv("DB_FILE","machine_data.db")
-UPDATE_INTERVAL = int(os.getenv("UPDATE_INTERVAL", 2))
+UPDATE_INTERVAL = int(os.getenv("UPDATE_INTERVAL", 5))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 10))  # for DB inserts
 
 
@@ -37,8 +37,14 @@ def normalize_unit(unit: str) -> str:
 
 def init_db(db_file: str):
     """Initialize SQLite DB and create table if not exists."""
-    conn = sqlite3.connect(db_file)
+    # ADD TIMEOUT HERE
+    conn = sqlite3.connect(db_file, timeout=30.0)
     cursor = conn.cursor()
+    
+    # ENABLE WAL MODE FOR CONCURRENT ACCESS
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA busy_timeout=30000")  # 30 seconds in milliseconds
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS machine_signals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,14 +96,28 @@ def fetch_machine_data(client):
 
     return data_batch
 
-def insert_batch(cursor, data_batch):
-    """Insert batch data into SQLite DB."""
-    if data_batch:
-        cursor.executemany("""
-            INSERT INTO machine_signals
-            (machine, signal, value, unit, timestamp)
-            VALUES (?, ?, ?, ?, ?)
-        """, data_batch)
+def insert_batch(cursor, conn, data_batch, max_retries=5):
+    """Insert batch data into SQLite DB with retry logic."""
+    if not data_batch:
+        return
+    
+    for attempt in range(max_retries):
+        try:
+            cursor.executemany("""
+                INSERT INTO machine_signals
+                (machine, signal, value, unit, timestamp)
+                VALUES (?, ?, ?, ?, ?)
+            """, data_batch)
+            conn.commit()
+            return  # Success
+        except sqlite3.OperationalError as e:
+            if "locked" in str(e).lower() and attempt < max_retries - 1:
+                wait_time = 0.1 * (attempt + 1)  # Exponential backoff
+                logging.warning(f"Database locked, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                time.sleep(wait_time)
+            else:
+                logging.error(f"Failed to insert batch after {max_retries} attempts: {e}")
+                raise
 
 def main():
     # Initialize DB
@@ -110,8 +130,7 @@ def main():
             while True:
                 data_batch = fetch_machine_data(client)
                 if data_batch:
-                    insert_batch(cursor, data_batch)
-                    conn.commit()
+                    insert_batch(cursor, conn, data_batch)
                     logging.info(f"Stored {len(data_batch)} signals to DB")
                 else:
                     logging.info("No signals fetched")
