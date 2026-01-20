@@ -31,24 +31,103 @@ interface SignalAverage {
   unit: string;
 }
 
+interface MultiSignalData {
+  timestamp: string;
+  [key: string]: any; // for dynamic signal values
+}
+
+const SIGNAL_COLORS = [
+  "#2563eb", "#dc2626", "#10b981", "#f59e0b", "#8b5cf6", 
+  "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#6366f1"
+];
+
+// Multi-Select Dropdown Component
+function MultiSelectDropdown({ 
+  label, 
+  options, 
+  selected, 
+  onToggle,
+  disabled = false
+}: { 
+  label: string;
+  options: string[];
+  selected: string[];
+  onToggle: (option: string) => void;
+  disabled?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      {label && <label className="block text-sm font-medium mb-2">{label}</label>}
+      <div 
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`border p-2 rounded flex justify-between items-center h-[42px] ${
+          disabled 
+            ? 'bg-gray-100 cursor-not-allowed text-gray-400' 
+            : 'bg-white cursor-pointer'
+        }`}
+      >
+        <span className="text-sm">
+          {disabled 
+            ? "Select machine first..."
+            : selected.length === 0 
+              ? "Select signals..." 
+              : `${selected.length} signal${selected.length > 1 ? 's' : ''} selected`}
+        </span>
+        <span className="text-gray-500 text-xs">{isOpen ? '▲' : '▼'}</span>
+      </div>
+
+      {isOpen && !disabled && (
+        <>
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute z-20 w-full mt-1 bg-white border rounded shadow-lg max-h-60 overflow-y-auto">
+            {options.length === 0 ? (
+              <div className="p-2 text-sm text-gray-500">No signals available</div>
+            ) : (
+              options.map((option, i) => (
+                <label
+                  key={i}
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(option)}
+                    onChange={() => onToggle(option)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">{option}</span>
+                </label>
+              ))
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function SignalViewer() {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [signals, setSignals] = useState<Signal[]>([]);
   
   // Primary selection
   const [selectedMachine, setSelectedMachine] = useState("");
-  const [selectedSignal, setSelectedSignal] = useState("");
+  const [selectedSignals, setSelectedSignals] = useState<string[]>([]);
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
 
   // Comparison selection
   const [compareMode, setCompareMode] = useState(false);
   const [compareMachine, setCompareMachine] = useState("");
-  const [compareSignal, setCompareSignal] = useState("");
-  const [compareSignals, setCompareSignals] = useState<Signal[]>([]);
+  const [compareSignals, setCompareSignals] = useState<string[]>([]);
+  const [compareSignalsList, setCompareSignalsList] = useState<Signal[]>([]);
 
-  const [telemetry, setTelemetry] = useState<TelemetryData[]>([]);
-  const [compareTelemetry, setCompareTelemetry] = useState<TelemetryData[]>([]);
+  const [multiSignalData, setMultiSignalData] = useState<MultiSignalData[]>([]);
   
   const [averages, setAverages] = useState<SignalAverage[]>([]);
   const [compareAverages, setCompareAverages] = useState<SignalAverage[]>([]);
@@ -86,7 +165,7 @@ export default function SignalViewer() {
             )
           : [];
         setSignals(list);
-        setSelectedSignal("");
+        setSelectedSignals([]);
       })
       .catch(() => setError("Failed to load signals"));
   }, [selectedMachine]);
@@ -103,16 +182,33 @@ export default function SignalViewer() {
               typeof s === "string" ? { signal: s } : s
             )
           : [];
-        setCompareSignals(list);
-        setCompareSignal("");
+        setCompareSignalsList(list);
+        setCompareSignals([]);
       })
       .catch(() => setError("Failed to load comparison signals"));
   }, [compareMachine, compareMode]);
 
+  // ------------------ Toggle Signal Selection ------------------
+  const toggleSignalSelection = (signal: string) => {
+    setSelectedSignals(prev => 
+      prev.includes(signal)
+        ? prev.filter(s => s !== signal)
+        : [...prev, signal]
+    );
+  };
 
+  const toggleCompareSignalSelection = (signal: string) => {
+    setCompareSignals(prev => 
+      prev.includes(signal)
+        ? prev.filter(s => s !== signal)
+        : [...prev, signal]
+    );
+  };
+
+  // ------------------ Fetch Multi-Signal Telemetry ------------------
   const fetchTelemetry = async () => {
-    if (!selectedMachine || !selectedSignal || !fromTime || !toTime) {
-      setError("Please select all fields");
+    if (!selectedMachine || selectedSignals.length === 0 || !fromTime || !toTime) {
+      setError("Please select machine and at least one signal");
       return;
     }
 
@@ -120,29 +216,88 @@ export default function SignalViewer() {
     setError("");
 
     try {
-      
-      const res = await fetch(
-        `https://localhost:7292/api/Machine/data?machine=${selectedMachine}&signal=${selectedSignal}&from=${fromTime}&to=${toTime}`
+      // Fetch data for all selected primary signals
+      const primaryPromises = selectedSignals.map(signal =>
+        fetch(
+          `https://localhost:7292/api/Machine/data?machine=${selectedMachine}&signal=${signal}&from=${fromTime}&to=${toTime}`
+        ).then(res => res.json())
       );
-      const data = await res.json();
-      console.log(data);
-      setTelemetry(data || []);
 
-     
-      if (compareMode && compareMachine && compareSignal) {
-        const compareRes = await fetch(
-          `https://localhost:7292/api/Machine/data?machine=${compareMachine}&signal=${compareSignal}&from=${fromTime}&to=${toTime}`
+      const primaryResults = await Promise.all(primaryPromises);
+
+      // Fetch data for comparison signals if enabled
+      let compareResults: any[] = [];
+      if (compareMode && compareMachine && compareSignals.length > 0) {
+        const comparePromises = compareSignals.map(signal =>
+          fetch(
+            `https://localhost:7292/api/Machine/data?machine=${compareMachine}&signal=${signal}&from=${fromTime}&to=${toTime}`
+          ).then(res => res.json())
         );
-        const compareData = await compareRes.json();
-        setCompareTelemetry(compareData || []);
-      } else {
-        setCompareTelemetry([]);
+        compareResults = await Promise.all(comparePromises);
       }
+
+      // Merge all data by timestamp
+      const mergedData = mergeMultiSignalData(
+        primaryResults,
+        selectedSignals,
+        selectedMachine,
+        compareResults,
+        compareSignals,
+        compareMachine
+      );
+
+      setMultiSignalData(mergedData);
     } catch {
       setError("Failed to fetch telemetry data");
     } finally {
       setLoading(false);
     }
+  };
+
+  // ------------------ Merge Data from Multiple Signals ------------------
+  const mergeMultiSignalData = (
+    primaryResults: TelemetryData[][],
+    primarySignals: string[],
+    primaryMachine: string,
+    compareResults: TelemetryData[][],
+    compSignals: string[],
+    compMachine: string
+  ): MultiSignalData[] => {
+    const timestampMap = new Map<string, MultiSignalData>();
+
+    // Add primary signals
+    primaryResults.forEach((data, index) => {
+      const signalName = primarySignals[index];
+      const key = `${primaryMachine}_${signalName}`;
+      
+      data.forEach(item => {
+        const ts = item.timestamp;
+        if (!timestampMap.has(ts)) {
+          timestampMap.set(ts, { timestamp: ts });
+        }
+        timestampMap.get(ts)![key] = item.value;
+      });
+    });
+
+    // Add comparison signals
+    if (compareMode && compMachine) {
+      compareResults.forEach((data, index) => {
+        const signalName = compSignals[index];
+        const key = `${compMachine}_${signalName}`;
+        
+        data.forEach(item => {
+          const ts = item.timestamp;
+          if (!timestampMap.has(ts)) {
+            timestampMap.set(ts, { timestamp: ts });
+          }
+          timestampMap.get(ts)![key] = item.value;
+        });
+      });
+    }
+
+    return Array.from(timestampMap.values()).sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
   };
 
   // ------------------ Fetch Averages ------------------
@@ -154,20 +309,17 @@ export default function SignalViewer() {
         `https://localhost:7292/api/Machine/signal-averages?machine=${selectedMachine}&days=${periodDays}`
       );
       const data = await res.json();
-      console.log(data)
       setAverages(data.signals || []);
     } catch {
       setAverages([]);
     }
 
-    // Fetch comparison machine averages if in compare mode
     if (compareMode && compareMachine) {
       try {
         const compareRes = await fetch(
           `https://localhost:7292/api/Machine/signal-averages?machine=${compareMachine}&days=${periodDays}`
         );
         const compareData = await compareRes.json();
-        console.log(compareData)
         setCompareAverages(compareData.signals || []);
       } catch {
         setCompareAverages([]);
@@ -196,18 +348,49 @@ export default function SignalViewer() {
     unit: a.unit
   }));
 
-  const formatTime = (ts: string) =>
-    new Date(ts).toLocaleTimeString();
+  const formatTime = (ts: string) => new Date(ts).toLocaleTimeString();
 
-  // Merge telemetry data for comparison chart
-  const mergedData = telemetry.map((item, index) => {
-    const compareItem = compareTelemetry[index];
-    return {
-      timestamp: item.timestamp,
-      value1: item.value,
-      value2: compareItem ? compareItem.value : null
-    };
-  });
+  // Generate line components for chart
+  const renderLines = () => {
+    const lines = [];
+    let colorIndex = 0;
+
+    // Primary machine lines
+    selectedSignals.forEach(signal => {
+      const key = `${selectedMachine}_${signal}`;
+      lines.push(
+        <Line
+          key={key}
+          type="monotone"
+          dataKey={key}
+          stroke={SIGNAL_COLORS[colorIndex % SIGNAL_COLORS.length]}
+          dot={false}
+          name={`${selectedMachine} - ${signal}`}
+        />
+      );
+      colorIndex++;
+    });
+
+    // Comparison machine lines - all solid, no dashes
+    if (compareMode && compareMachine) {
+      compareSignals.forEach(signal => {
+        const key = `${compareMachine}_${signal}`;
+        lines.push(
+          <Line
+            key={key}
+            type="monotone"
+            dataKey={key}
+            stroke={SIGNAL_COLORS[colorIndex % SIGNAL_COLORS.length]}
+            dot={false}
+            name={`${compareMachine} - ${signal}`}
+          />
+        );
+        colorIndex++;
+      });
+    }
+
+    return lines;
+  };
 
   // ================== UI ==================
   return (
@@ -234,8 +417,7 @@ export default function SignalViewer() {
                 setCompareMode(e.target.checked);
                 if (!e.target.checked) {
                   setCompareMachine("");
-                  setCompareSignal("");
-                  setCompareTelemetry([]);
+                  setCompareSignals([]);
                 }
               }}
               className="w-4 h-4"
@@ -259,17 +441,13 @@ export default function SignalViewer() {
               ))}
             </select>
 
-            <select
-              value={selectedSignal}
-              onChange={e => setSelectedSignal(e.target.value)}
-              className="border p-2 rounded"
-              disabled={!signals.length}
-            >
-              <option value="">Select Signal</option>
-              {signals.map((s, i) => (
-                <option key={i} value={s.signal}>{s.signal}</option>
-              ))}
-            </select>
+            <MultiSelectDropdown
+              label=""
+              options={signals.map(s => s.signal)}
+              selected={selectedSignals}
+              onToggle={toggleSignalSelection}
+              disabled={!selectedMachine}
+            />
 
             <input
               type="datetime-local"
@@ -303,17 +481,13 @@ export default function SignalViewer() {
                 ))}
               </select>
 
-              <select
-                value={compareSignal}
-                onChange={e => setCompareSignal(e.target.value)}
-                className="border p-2 rounded"
-                disabled={!compareSignals.length}
-              >
-                <option value="">Select Signal</option>
-                {compareSignals.map((s, i) => (
-                  <option key={i} value={s.signal}>{s.signal}</option>
-                ))}
-              </select>
+              <MultiSelectDropdown
+                label=""
+                options={compareSignalsList.map(s => s.signal)}
+                selected={compareSignals}
+                onToggle={toggleCompareSignalSelection}
+                disabled={!compareMachine}
+              />
             </div>
           </div>
         )}
@@ -321,7 +495,7 @@ export default function SignalViewer() {
         <div className="flex gap-4 mb-6">
           <button
             onClick={fetchTelemetry}
-            disabled={loading}
+            disabled={loading || selectedSignals.length === 0}
             className="px-6 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400"
           >
             {loading ? "Loading..." : "Fetch Trend Data"}
@@ -340,51 +514,26 @@ export default function SignalViewer() {
         {/* -------- Line Chart -------- */}
         <div className="bg-white p-6 rounded shadow mb-8">
           <h2 className="text-xl font-semibold mb-4">
-            Signal Trend
+            Signal Trends - {selectedSignals.length + (compareMode ? compareSignals.length : 0)} Signals
           </h2>
 
-          {telemetry.length === 0 ? (
-            <p className="text-gray-500">No data</p>
+          {multiSignalData.length === 0 ? (
+            <p className="text-gray-500">No data - select signals and click "Fetch Trend Data"</p>
           ) : (
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={compareMode && compareTelemetry.length > 0 ? mergedData : telemetry}>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={multiSignalData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="timestamp" tickFormatter={formatTime} />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                {compareMode && compareTelemetry.length > 0 ? (
-                  <>
-                    <Line
-                      type="monotone"
-                      dataKey="value1"
-                      stroke="#2563eb"
-                      dot={false}
-                      name={`${selectedMachine} - ${selectedSignal}`}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value2"
-                      stroke="#dc2626"
-                      dot={false}
-                      name={`${compareMachine} - ${compareSignal}`}
-                    />
-                  </>
-                ) : (
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#2563eb"
-                    dot={false}
-                    name={selectedSignal}
-                  />
-                )}
+                {renderLines()}
               </LineChart>
             </ResponsiveContainer>
           )}
         </div>
 
-        {/* -------- Average Bar Chart (Only shown when showStats is true) -------- */}
+        {/* -------- Average Bar Chart -------- */}
         {showStats && (
           <>
             <div className="bg-white p-6 rounded shadow mb-6">
@@ -433,7 +582,6 @@ export default function SignalViewer() {
               )}
             </div>
 
-            {/* Comparison Machine Stats */}
             {compareMode && compareMachine && (
               <div className="bg-white p-6 rounded shadow">
                 <div className="flex justify-between items-center mb-4">

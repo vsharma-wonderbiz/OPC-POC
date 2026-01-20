@@ -80,5 +80,49 @@ namespace POCApi.Services
             }
         }
 
+
+        public async Task<Dictionary<string,object>> BuildOpcRuntimeConfig()
+        {
+            try
+            {
+                var signalConfigs = await _context.SignalConfigs
+        .Include(s => s.Machine)
+        .ToListAsync();
+
+                var result = new Dictionary<string, object>();
+
+                foreach (var signal in signalConfigs)
+                {
+                    var machineName = signal.Machine.Name;
+
+                    
+                    if (!result.ContainsKey(machineName))
+                    {
+                        result[machineName] = new Dictionary<string, object>
+                        {
+                            ["signals"] = new Dictionary<string, object>()
+                        };
+                    }
+
+                    var machineObj = (Dictionary<string, object>)result[machineName];
+                    var signalsDict = (Dictionary<string, object>)machineObj["signals"];
+
+                    signalsDict[signal.SignalName] = new Dictionary<string, object>
+                    {
+                        ["register"] = signal.RegisterAddress,
+                        ["unit"] = signal.Unit,
+                        ["slave_id"] = signal.SlaveId
+                    };
+                }
+
+                return result;
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("something went wrong whie building the config");
+            }
+        }
+
     }
 }

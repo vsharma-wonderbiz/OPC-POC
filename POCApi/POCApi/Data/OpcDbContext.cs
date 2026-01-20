@@ -20,6 +20,9 @@ namespace POCApi.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<MachineSignalcs>()
+                 .ToTable("machine_signals", t => t.ExcludeFromMigrations());
+
             modelBuilder.Entity<MachineSignalcs>().ToTable("machine_signals");
             modelBuilder.Entity<Machines>().ToTable("Machines");// exact table name
             modelBuilder.Entity<SignalConfigs>().ToTable("SignalConfigs");

@@ -58,5 +58,18 @@ namespace POCApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("opc/config")]
+        public async Task<IActionResult> GetOpcConfig()
+        {
+            try
+            {
+                var config = await _configservicecs.BuildOpcRuntimeConfig();
+                return Ok(config);
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

@@ -42,6 +42,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "POCApi.Controllers.ConfigController",
+    "Method": "GetOpcConfig",
+    "RelativePath": "api/Config/opc/config",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "POCApi.Controllers.MachineController",
     "Method": "GetAllMAchine",
     "RelativePath": "api/Machine",
