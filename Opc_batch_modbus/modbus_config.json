@@ -1,0 +1,44 @@
+{
+    "REGISTER_MAP":{
+        "Mixer_101": {"Speed": 0, "torque": 2, "Volume": 4, "Temperature": 6, "Power": 8, "Current": 10},
+        "Mixer_102": {"Speed": 12, "torque": 14, "Volume": 16, "Temperature": 18, "Power": 20, "Current": 22},
+        "Mixer_103": {"Speed": 24, "torque": 26, "Volume": 28, "Temperature": 30, "Power": 32, "Current": 34}
+        
+    },
+     
+
+    
+    "MIXER_SEQUENCES":{
+
+    "Mixer_101": [
+        {"torque": 25, "rpm": 400.000000, "vol_start": 1000, "vol_end": 1000, "temp": 25,"duration": 40},
+        {"torque": 10, "rpm": 50, "vol_start": 1000, "vol_end": 0, "temp": 25, "duration": 60},
+        {"torque": 10, "rpm": 50, "vol_start": 0, "vol_end": 0, "temp": 25, "duration": 60}
+    ],
+
+    "Mixer_102": [
+        {"torque": 90, "rpm": 1500, "vol_start": 1000, "vol_end": 1000, "temp": 25, "duration": 90},
+        {"torque": 20, "rpm": 50, "vol_start": 1000, "vol_end": 1000, "temp": 25, "duration": 60},
+        {"torque": 20, "rpm": 50, "vol_start": 1000, "vol_end": 1200, "temp": 25, "duration": 100},
+        {"torque": 25, "rpm": 600, "vol_start": 1200, "vol_end": 1200, "temp": 25, "duration": 60},
+        {"torque": 40, "rpm": 1500, "vol_start": 1200, "vol_end": 1200, "temp": 25, "duration": 120},
+        {"torque": 20, "rpm": 50, "vol_start": 1200, "vol_end": 1300, "temp": 25, "duration": 50},
+        {"torque": 40, "rpm": 600, "vol_start": 1300, "vol_end": 1300, "temp": 25, "duration": 30},
+        {"torque": 40, "rpm": 1500, "vol_start": 1300, "vol_end": 1300, "temp": 25, "duration": 60},
+        {"torque": 10, "rpm": 50, "vol_start": 1300, "vol_end": 300, "temp": 25, "duration": 200},
+        {"torque": 10, "rpm": 50, "vol_start": 0, "vol_end": 0, "temp": 25, "duration": 60}
+    ],
+
+    "Mixer_103": [
+        {"torque": 90, "rpm": 1500, "vol_start": 1000, "vol_end": 1000, "temp": 25, "duration": 150},
+        {"torque": 40, "rpm": 1500, "vol_start": 1000, "vol_end": 1000, "temp": 25, "duration": 150},
+        {"torque": 10, "rpm": 50, "vol_start": 1000, "vol_end": 0, "temp": 25, "duration": 150},
+        {"torque": 10, "rpm": 50, "vol_start": 0, "vol_end": 0, "temp": 25, "duration": 60}
+    ]
+   
+
+    },
+
+    "STEP_SIGNALS": ["Speed", "torque", "Volume", "Temperature"]
+
+}
